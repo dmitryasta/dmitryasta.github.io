@@ -1,0 +1,90 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Cta from '../components/Cta.astro';
+import Faq from '../components/Faq.astro';
+import Arrow from '../components/Arrow.astro';
+import { href, absUrl, SERVICE_IDS, type Lang } from '../lib/pages';
+import { getEntry, type ServiceMeta, type ArticleMeta } from '../lib/content';
+import { ui } from '../i18n';
+import { SITE } from '../lib/site';
+import { graph, breadcrumbNode, faqNode, websiteNode, personNode, personId } from '../lib/schema';
+interface Props { lang: Lang; id: string }
+const { lang, id } = Astro.props;
+const t = ui(lang);
+const e = getEntry<ServiceMeta>(lang, id);
+const m = e.frontmatter;
+const Body = e.Content;
+const pageId = `svc:${id}`;
+const others = SERVICE_IDS.filter((x) => x !== id).map((x) => ({ id: x, name: getEntry<ServiceMeta>(lang, x).frontmatter.name }));
+const related = m.related.map((r) => ({ id: r, ...getEntry<ArticleMeta>(lang, r).frontmatter }));
+const ld = graph([
+  websiteNode(lang),
+  personNode(lang, false),
+  {
+    '@type': 'Service',
+    '@id': `${absUrl(lang, pageId)}#service`,
+    name: m.name,
+    serviceType: m.serviceType,
+    description: m.description,
+    url: absUrl(lang, pageId),
+    inLanguage: lang,
+    provider: { '@id': personId() },
+    areaServed: { '@type': 'Country', name: 'Serbia' },
+    audience: { '@type': 'BusinessAudience', audienceType: m.forWhom.join('; ') },
+  },
+  breadcrumbNode([{ name: t.nav.home, url: absUrl(lang, 'home') }, { name: t.nav.services, url: absUrl(lang, 'services') }, { name: m.name, url: absUrl(lang, pageId) }]),
+  faqNode(m.faq),
+]);
+---
+<Base lang={lang} pageId={pageId} title={m.title} description={m.description} jsonLd={ld}>
+  <PageHero crumbs={[{ name: t.nav.home, href: href(lang, 'home') }, { name: t.nav.services, href: href(lang, 'services') }, { name: m.name }]} crumbsLabel={t.a11y.breadcrumbs} eyebrow={t.nav.services} h1={m.h1} lead={m.lead}>
+    <div class="page-hero__actions">
+      <a class="btn btn--primary" href={href(lang, 'contact')}>{t.common.contactCta}<Arrow /></a>
+      <a class="btn btn--ghost" href={`mailto:${SITE.email}`}>{SITE.email}</a>
+    </div>
+  </PageHero>
+  <section class="section section--tight">
+    <div class="container cols">
+      <div class="stack">
+        <div class="block">
+          <h2>{t.common.forWhom}</h2>
+          <ul class="ticks">{m.forWhom.map((x) => <li>{x}</li>)}</ul>
+        </div>
+        <div class="block">
+          <h2>{t.common.included}</h2>
+          <ul class="ticks">{m.included.map((x) => <li>{x}</li>)}</ul>
+        </div>
+        <div class="block">
+          <h2>{t.common.process}</h2>
+          <ol class="steps">{m.steps.map((s) => <li><div><h3>{s.t}</h3><p>{s.d}</p></div></li>)}</ol>
+        </div>
+        <div class="block">
+          <h2>{t.common.outcomes}</h2>
+          <ul class="ticks">{m.outcomes.map((x) => <li>{x}</li>)}</ul>
+        </div>
+        <div class="block prose"><Body /></div>
+        <div class="block">
+          <h2>{t.common.limits}</h2>
+          <ul class="ticks ticks--no">{m.limits.map((x) => <li>{x}</li>)}</ul>
+        </div>
+        <div class="block">
+          <h2>{t.common.faq}</h2>
+          <Faq items={m.faq} />
+        </div>
+      </div>
+      <aside class="aside">
+        <div class="panel">
+          <h2>{t.common.relatedArticles}</h2>
+          <ul>{related.map((r) => <li><a href={href(lang, `art:${r.id}`)}>{r.h1}</a></li>)}</ul>
+        </div>
+        <div class="panel">
+          <h2>{t.common.relatedServices}</h2>
+          <ul>{others.map((o) => <li><a href={href(lang, `svc:${o.id}`)}>{o.name}</a></li>)}</ul>
+        </div>
+        <a class="btn btn--primary" href={href(lang, 'contact')}>{t.nav.cta}</a>
+      </aside>
+    </div>
+  </section>
+  <Cta lang={lang} />
+</Base>

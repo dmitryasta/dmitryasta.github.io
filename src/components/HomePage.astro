@@ -1,0 +1,264 @@
+---
+import Base from '../layouts/Base.astro';
+import HeroArt from '../components/HeroArt.astro';
+import Faq from '../components/Faq.astro';
+import Cta from '../components/Cta.astro';
+import Arrow from '../components/Arrow.astro';
+import { href, absUrl, SERVICE_IDS, ARTICLE_IDS, type Lang } from '../lib/pages';
+import { getEntry, type ServiceMeta, type ArticleMeta } from '../lib/content';
+import { ui, inline } from '../i18n';
+import { SITE } from '../lib/site';
+import { RECOMMENDATIONS } from '../data/recommendations';
+import { graph, personNode, websiteNode, faqNode } from '../lib/schema';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = ui(lang);
+const h = t.home;
+const services = SERVICE_IDS.map((id) => ({ id, ...getEntry<ServiceMeta>(lang, id).frontmatter }));
+const articles = ARTICLE_IDS.slice(0, 3).map((id) => ({ id, ...getEntry<ArticleMeta>(lang, id).frontmatter }));
+const recs = RECOMMENDATIONS[lang];
+const tileClass = ['tile--hero', 'tile--w3', 'tile--w3', 'tile--w2', 'tile--w2', 'tile--w2', 'tile--w6'];
+const ld = graph([
+  websiteNode(lang),
+  personNode(lang, true),
+  { '@type': 'WebPage', '@id': `${absUrl(lang, 'home')}#webpage`, url: absUrl(lang, 'home'), name: h.title, description: h.description, inLanguage: lang, isPartOf: { '@id': websiteNode(lang)['@id'] }, about: { '@id': personNode(lang, false)['@id'] } },
+  faqNode(h.faq.items),
+]);
+---
+<Base lang={lang} pageId="home" title={h.title} description={h.description} jsonLd={ld}>
+  <section class="hero">
+    <div class="hero__bg"></div>
+    <div class="hero__beams"></div>
+    <div class="bg-grid"></div>
+    <div class="container">
+      <div class="hero__grid">
+        <div class="hero__copy">
+          <div class="hero__brand">
+            <span class="chip"><i></i>{h.hero.chip}</span>
+            <strong>{h.hero.brand}</strong>
+          </div>
+          <h1>{h.hero.h1a} <span class="grad">{h.hero.h1b}</span></h1>
+          <p class="hero__sub">{h.hero.sub}</p>
+          <div class="hero__cta">
+            <a class="btn btn--primary" href={href(lang, 'contact')}>{h.hero.cta1}<Arrow /></a>
+            <a class="btn btn--ghost" href={href(lang, 'services')}>{h.hero.cta2}</a>
+          </div>
+          <a class="hero__lin" href={SITE.linkedin} rel="me noopener" target="_blank"><b></b>{h.hero.linkedin}</a>
+        </div>
+        <HeroArt t={h.art} />
+      </div>
+      <dl class="facts" aria-label={SITE.name}>
+        {h.facts.map((f) => (
+          <div class="fact"><dt class="visually-hidden">{f.l}</dt><dd style="margin:0;display:grid;gap:6px"><b>{f.v}</b><span>{f.l}</span></dd></div>
+        ))}
+      </dl>
+    </div>
+  </section>
+
+  <section class="section section--alt" id="services" aria-labelledby="services-h">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="eyebrow">{h.services.eyebrow}</span>
+        <h2 class="h2 h2--wide" id="services-h">{h.services.h2}</h2>
+        <p class="lead">{h.services.lead}</p>
+      </div>
+      <div class="bento">
+        {services.map((s, i) => (
+          <a class={`tile ${tileClass[i]} reveal`} style={`--d:${(i % 3) * 0.08}s`} href={href(lang, `svc:${s.id}`)}>
+            {i === 6 ? (
+              <>
+                <div class="tile__col">
+                  <span class="tile__no">{String(i + 1).padStart(2, '0')}</span>
+                  <h3>{s.name}</h3>
+                  <p>{s.short}</p>
+                  <span class="link-arrow">{h.services.open}<Arrow /></span>
+                </div>
+                <ol class="flow" aria-hidden="true">{h.services.flow.map((x) => <li>{x}</li>)}</ol>
+              </>
+            ) : (
+              <>
+                <span class="tile__no">{String(i + 1).padStart(2, '0')}</span>
+                <h3>{s.name}</h3>
+                <p>{s.short}</p>
+                {i === 0 && (
+                  <svg class="tile__art" viewBox="0 0 340 150" aria-hidden="true" focusable="false">
+                    <defs><linearGradient id="ta" x1="0" x2="1"><stop offset="0" stop-color="#4d8dff" /><stop offset="1" stop-color="#42c8e8" /></linearGradient></defs>
+                    <g fill="none" stroke="url(#ta)" stroke-width="1.4">
+                      <polygon points="170,12 318,70 170,128 22,70" stroke-opacity=".9" />
+                      <polygon points="170,34 270,70 170,106 70,70" stroke-opacity=".6" />
+                      <polygon points="170,54 220,70 170,88 120,70" stroke-opacity=".4" />
+                    </g>
+                    <circle cx="170" cy="70" r="5" fill="#42c8e8" />
+                    <path d="M22 70H0M318 70h22" stroke="#aab7c9" stroke-opacity=".35" />
+                  </svg>
+                )}
+                <span class="link-arrow">{h.services.open}<Arrow /></span>
+              </>
+            )}
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="process" aria-labelledby="process-h">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="eyebrow">{h.route.eyebrow}</span>
+        <h2 class="h2 h2--wide" id="process-h">{h.route.h2}</h2>
+        <p class="lead">{h.route.lead}</p>
+      </div>
+      <ol class="route">
+        {h.route.steps.map((s, i) => (
+          <li class="route__item reveal" style={`--d:${i * 0.07}s`}>
+            <span class="route__dot">{i + 1}</span>
+            <div><h3>{s.t}</h3><p>{s.d}</p></div>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <section class="section section--deep" id="expertise" aria-labelledby="expertise-h">
+    <div class="container expertise">
+      <div class="reveal">
+        <div class="section-head" style="margin-bottom:32px">
+          <span class="eyebrow">{h.expertise.eyebrow}</span>
+          <h2 class="h2" id="expertise-h">{h.expertise.h2}</h2>
+          <p class="lead">{h.expertise.lead}</p>
+        </div>
+        <div class="matrix">
+          {h.expertise.matrix.map((m) => (
+            <div class="matrix__row"><b>{m.n}</b><div><h3>{m.t}</h3><p>{m.d}</p></div></div>
+          ))}
+        </div>
+      </div>
+      <div class="reveal" style="--d:.1s">
+        <div class="panel">
+          <h3>{h.expertise.industriesTitle}</h3>
+          <p>{h.expertise.industriesText}</p>
+          <ul class="chips">{h.expertise.industries.map((x) => <li>{x}</li>)}</ul>
+        </div>
+        <div class="panel">
+          <h3>{h.expertise.geoTitle}</h3>
+          <ul class="geo" style="margin-top:14px">{h.expertise.geo.map((g) => <li><b>{g.c}</b><span>{g.d}</span></li>)}</ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="about" aria-labelledby="about-h">
+    <div class="container editorial">
+      <div class="id-card reveal" aria-hidden="true">
+        <span class="id-card__mono">DA</span>
+        <dl>
+          <div><dt>{h.about.card.role}</dt><dd>{h.about.card.roleV}</dd></div>
+          <div class="id-card__line"></div>
+          <div><dt>{h.about.card.base}</dt><dd>{h.about.card.baseV}</dd></div>
+          <div><dt>{h.about.card.langs}</dt><dd>{h.about.card.langsV}</dd></div>
+        </dl>
+      </div>
+      <div class="editorial__body reveal" style="--d:.08s">
+        <span class="eyebrow">{h.about.eyebrow}</span>
+        <h2 class="h2 h2--wide" id="about-h">{h.about.h2}</h2>
+        <p set:html={inline(h.about.p1)}></p>
+        <p set:html={inline(h.about.p2)}></p>
+        <p>{h.about.p3}</p>
+        <div class="stats">{h.about.stats.map((s) => <div><b>{s.v}</b><span>{s.l}</span></div>)}</div>
+        <a class="link-arrow" href={href(lang, 'about')}>{h.about.more}<Arrow /></a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--alt" id="cases" aria-labelledby="cases-h">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="eyebrow">{h.cases.eyebrow}</span>
+        <h2 class="h2 h2--wide" id="cases-h">{h.cases.h2}</h2>
+        <p class="lead">{h.cases.lead}</p>
+      </div>
+      <div class="dossiers">
+        {h.cases.items.map((c) => (
+          <article class="dossier reveal">
+            <div class="dossier__rail">
+              <span class="dossier__id">{c.id}</span>
+              <h3>{c.title}</h3>
+              <span class="dossier__years">{c.years}</span>
+              <span class="dossier__badge">{t.common.selfReported}</span>
+            </div>
+            <dl class="dossier__body">
+              <div class="dossier__row"><dt>{h.cases.fields.task}</dt><dd>{c.task}</dd></div>
+              <div class="dossier__row"><dt>{h.cases.fields.context}</dt><dd>{c.context}</dd></div>
+              <div class="dossier__row"><dt>{h.cases.fields.role}</dt><dd>{c.role}</dd></div>
+              <div class="dossier__row"><dt>{h.cases.fields.actions}</dt><dd><ul>{c.actions.map((a) => <li>{a}</li>)}</ul></dd></div>
+              <div class="dossier__row"><dt>{h.cases.fields.result}</dt><dd>{c.result}</dd></div>
+              <div class="dossier__row"><dt>{h.cases.fields.sources}</dt><dd class="dossier__src">{c.sources}</dd></div>
+            </dl>
+          </article>
+        ))}
+      </div>
+      <p class="note">{h.cases.note}</p>
+    </div>
+  </section>
+
+  <section class="section" id="recommendations" aria-labelledby="recs-h">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="eyebrow">{h.recs.eyebrow}</span>
+        <h2 class="h2 h2--wide" id="recs-h">{h.recs.h2}</h2>
+        <p class="lead">{h.recs.lead}</p>
+      </div>
+      {recs.length > 0 && (
+        <div class="recs" style="margin-bottom:18px">
+          {recs.map((r) => (
+            <figure class="rec reveal">
+              <blockquote>{r.text}</blockquote>
+              <figcaption><b>{r.author}</b>{r.role}{r.date ? `, ${r.date}` : ''} · <a href={r.url} rel="noopener" target="_blank">{h.recs.sourceLabel}</a></figcaption>
+            </figure>
+          ))}
+        </div>
+      )}
+      <div class="verify reveal">
+        <span class="verify__icon" aria-hidden="true">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6l7-3z" /><path d="M9 12l2 2 4-4" /></svg>
+        </span>
+        <div><h3>{h.recs.verifyTitle}</h3><p>{h.recs.verifyText}</p></div>
+        <a class="btn btn--ghost" href={SITE.linkedin} rel="me noopener" target="_blank">{h.recs.verifyBtn}</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--deep" id="insights" aria-labelledby="insights-h">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="eyebrow">{h.insights.eyebrow}</span>
+        <h2 class="h2 h2--wide" id="insights-h">{h.insights.h2}</h2>
+        <p class="lead">{h.insights.lead}</p>
+      </div>
+      <div class="insights">
+        {articles.map((a, i) => (
+          <a class="post reveal" style={`--d:${i * 0.08}s`} href={href(lang, `art:${a.id}`)}>
+            <div class="post__meta"><span class="post__topic">{a.topic}</span><time datetime={a.date}>{a.date}</time></div>
+            <h3>{a.h1}</h3>
+            <p>{a.description}</p>
+            <span class="link-arrow">{t.common.readMore}<Arrow /></span>
+          </a>
+        ))}
+      </div>
+      <p style="margin-top:28px"><a class="link-arrow" href={href(lang, 'insights')}>{t.common.allInsights}<Arrow /></a></p>
+    </div>
+  </section>
+
+  <section class="section" id="faq" aria-labelledby="faq-h">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="eyebrow">{h.faq.eyebrow}</span>
+        <h2 class="h2" id="faq-h">{h.faq.h2}</h2>
+      </div>
+      <Faq items={h.faq.items} />
+    </div>
+  </section>
+
+  <Cta lang={lang} />
+</Base>

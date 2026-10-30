@@ -1,0 +1,59 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Cta from '../components/Cta.astro';
+import { href, absUrl, type Lang } from '../lib/pages';
+import { ui } from '../i18n';
+import { SITE } from '../lib/site';
+import { graph, personNode, breadcrumbNode, websiteNode } from '../lib/schema';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = ui(lang);
+const a = t.about;
+const ld = graph([
+  websiteNode(lang),
+  { '@type': 'ProfilePage', '@id': `${absUrl(lang, 'about')}#profile`, url: absUrl(lang, 'about'), name: a.title, description: a.description, inLanguage: lang, mainEntity: { '@id': personNode(lang, false)['@id'] }, dateModified: SITE.published },
+  personNode(lang, true),
+  breadcrumbNode([{ name: t.nav.home, url: absUrl(lang, 'home') }, { name: t.nav.about, url: absUrl(lang, 'about') }]),
+]);
+---
+<Base lang={lang} pageId="about" title={a.title} description={a.description} jsonLd={ld}>
+  <PageHero crumbs={[{ name: t.nav.home, href: href(lang, 'home') }, { name: t.nav.about }]} crumbsLabel={t.a11y.breadcrumbs} h1={a.h1} lead={a.lead} />
+  <section class="section section--tight">
+    <div class="container cols">
+      <div class="stack">
+        <div class="block">
+          <h2>{a.storyTitle}</h2>
+          <div class="prose">{a.story.map((p) => <p>{p}</p>)}</div>
+        </div>
+        <div class="block">
+          <h2>{a.timelineTitle}</h2>
+          <ol class="timeline">
+            {a.timeline.map((x) => (
+              <li><time>{x.y}</time><h3>{x.t}</h3><ul>{x.items.map((i) => <li>{i}</li>)}</ul></li>
+            ))}
+          </ol>
+        </div>
+        <div class="block">
+          <h2>{a.principlesTitle}</h2>
+          <ol class="steps">{a.principles.map((p) => <li><div><h3>{p.t}</h3><p>{p.d}</p></div></li>)}</ol>
+        </div>
+        <div class="block">
+          <h2>{a.limitsTitle}</h2>
+          <ul class="ticks ticks--no">{a.limits.map((l) => <li>{l}</li>)}</ul>
+        </div>
+      </div>
+      <aside class="aside">
+        <div class="panel">
+          <h2>{a.briefTitle}</h2>
+          <table class="facts-table">
+            <tbody>{a.brief.map((r) => <tr><th scope="row">{r.k}</th><td>{r.v}</td></tr>)}</tbody>
+          </table>
+        </div>
+        <a class="btn btn--primary" href={`mailto:${SITE.email}`}>{t.nav.cta}</a>
+        <a class="btn btn--ghost" href={SITE.linkedin} rel="me noopener" target="_blank">LinkedIn</a>
+      </aside>
+    </div>
+  </section>
+  <Cta lang={lang} />
+</Base>

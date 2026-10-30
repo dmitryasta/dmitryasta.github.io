@@ -1,0 +1,19 @@
+---
+import Base from '../layouts/Base.astro';
+import { href, LANGS, LANG_LABEL } from '../lib/pages';
+import { ui } from '../i18n';
+const t = ui('en');
+---
+<Base lang="en" pageId="home" title={`${t.notFound.title} | Dmitry Astakhov`} description={t.notFound.text} noindex>
+  <section class="page-hero">
+    <div class="bg-grid"></div>
+    <div class="container">
+      <span class="eyebrow">404</span>
+      <h1>{t.notFound.title}</h1>
+      <p class="lead">{t.notFound.text}</p>
+      <div class="page-hero__actions">
+        {LANGS.map((l) => <a class="btn btn--ghost" href={href(l, 'home')} hreflang={l}>{LANG_LABEL[l]}</a>)}
+      </div>
+    </div>
+  </section>
+</Base>

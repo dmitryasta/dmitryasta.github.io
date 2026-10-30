@@ -1,0 +1,184 @@
+---
+// Isometric composition: three stacked commercial layers (import, distribution, retail) with Belgrade as the hub.
+// Everything is generated from simple geometry, so there are no images and no heavy filters.
+import type { UI } from '../i18n';
+interface Props { t: UI['home']['art'] }
+const { t } = Astro.props;
+
+const K = Math.SQRT1_2;
+const H = 130; // half side of the square plate in local units
+const TH = 18; // plate thickness
+const f = (n: number) => n.toFixed(1);
+const P = (cx: number, cy: number, lx: number, ly: number): [number, number] => [cx + (lx - ly) * K, cy + ((lx + ly) * K) / 2];
+const poly = (a: [number, number][]) => a.map((p) => `${f(p[0])},${f(p[1])}`).join(' ');
+
+function plate(cx: number, cy: number) {
+  const top = P(cx, cy, -H, -H), right = P(cx, cy, H, -H), bottom = P(cx, cy, H, H), left = P(cx, cy, -H, H);
+  const down = (p: [number, number]): [number, number] => [p[0], p[1] + TH];
+  const lines: string[] = [];
+  const n = 5;
+  for (let i = 1; i < n; i++) {
+    const v = -H + (2 * H * i) / n;
+    const a = P(cx, cy, v, -H), b = P(cx, cy, v, H);
+    const c = P(cx, cy, -H, v), d = P(cx, cy, H, v);
+    lines.push(`M${f(a[0])} ${f(a[1])}L${f(b[0])} ${f(b[1])}`, `M${f(c[0])} ${f(c[1])}L${f(d[0])} ${f(d[1])}`);
+  }
+  return {
+    face: poly([top, right, bottom, left]),
+    leftSide: poly([left, bottom, down(bottom), down(left)]),
+    rightSide: poly([bottom, right, down(right), down(bottom)]),
+    grid: lines.join(''),
+  };
+}
+
+// cube with its bottom centre at (x, y)
+function cube(x: number, y: number, w: number, d: number) {
+  const h = w / 2;
+  return {
+    top: poly([[x, y - d - h], [x + w, y - d], [x, y - d + h], [x - w, y - d]]),
+    left: poly([[x - w, y - d], [x, y - d + h], [x, y + h], [x - w, y]]),
+    right: poly([[x + w, y - d], [x, y - d + h], [x, y + h], [x + w, y]]),
+  };
+}
+
+const CX = 330;
+const planes = { bottom: 480, middle: 340, top: 200 };
+const pb = plate(CX, planes.bottom), pm = plate(CX, planes.middle), pt = plate(CX, planes.top);
+
+// bottom layer: import route factory -> border -> exit node
+const route = [P(CX, planes.bottom, -100, -70), P(CX, planes.bottom, -45, -25), P(CX, planes.bottom, 0, 0)];
+const routePath = `M${route.map((p) => `${f(p[0])} ${f(p[1])}`).join('L')}`;
+const routeCubes = route.slice(0, 2).map((p) => cube(p[0], p[1], 13, 13));
+
+// middle layer: hub and four spokes
+const hubMid = P(CX, planes.middle, 0, 0);
+const spokesMid = ([[-85, -62], [88, -66], [-72, 78], [82, 74]] as [number, number][]).map(([a, b]) => P(CX, planes.middle, a, b));
+
+// top layer: retail blocks around the Belgrade hub
+const hubTop = P(CX, planes.top, 0, 0);
+const blocks = ([[-84, -52, 10], [-30, -84, 16], [60, -76, 12], [86, -4, 20], [74, 70, 11], [8, 82, 15], [-70, 56, 18], [-92, 4, 9]] as [number, number, number][])
+  .map(([a, b, d]) => ({ p: P(CX, planes.top, a, b), d, order: a + b }))
+  .sort((x, y) => x.order - y.order)
+  .map((b) => ({ ...b, c: cube(b.p[0], b.p[1], 12, b.d) }));
+
+const labelX = CX + Math.round(H * Math.SQRT2) + 20;
+const chipW = (s: string) => Math.round(s.length * 7.4 + 34);
+const chipPos = [[10, 112], [10, 268], [10, 404]];
+---
+
+<div class="hero__art" data-hero-art style="--px:0;--py:0">
+  <svg viewBox="0 0 720 620" role="img" aria-label={t.title} xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="ha-top" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#2a5aa3" stop-opacity="0.92" />
+        <stop offset="1" stop-color="#112a4b" stop-opacity="0.94" />
+      </linearGradient>
+      <linearGradient id="ha-top2" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#1f4a86" stop-opacity="0.9" />
+        <stop offset="1" stop-color="#0e2342" stop-opacity="0.94" />
+      </linearGradient>
+      <linearGradient id="ha-side-l" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#16345d" />
+        <stop offset="1" stop-color="#0a1a30" />
+      </linearGradient>
+      <linearGradient id="ha-side-r" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#0f2a4c" />
+        <stop offset="1" stop-color="#071426" />
+      </linearGradient>
+      <linearGradient id="ha-edge" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#4d8dff" />
+        <stop offset="1" stop-color="#42c8e8" />
+      </linearGradient>
+      <radialGradient id="ha-floor" cx="50%" cy="50%" r="50%">
+        <stop offset="0" stop-color="#4d8dff" stop-opacity="0.45" />
+        <stop offset="1" stop-color="#4d8dff" stop-opacity="0" />
+      </radialGradient>
+      <radialGradient id="ha-hub" cx="50%" cy="50%" r="50%">
+        <stop offset="0" stop-color="#42c8e8" stop-opacity="0.75" />
+        <stop offset="1" stop-color="#42c8e8" stop-opacity="0" />
+      </radialGradient>
+    </defs>
+
+    <ellipse cx="330" cy="560" rx="250" ry="48" fill="url(#ha-floor)" />
+
+    <!-- bottom layer: import -->
+    <g class="art-parallax" style="--dx:14px;--dy:8px">
+      <g class="art-layer art-float-c">
+        <polygon points={pb.leftSide} fill="url(#ha-side-l)" stroke="rgba(127,176,255,.35)" stroke-width="1" />
+        <polygon points={pb.rightSide} fill="url(#ha-side-r)" stroke="rgba(127,176,255,.35)" stroke-width="1" />
+        <polygon points={pb.face} fill="url(#ha-top2)" stroke="url(#ha-edge)" stroke-width="1.4" />
+        <path d={pb.grid} stroke="rgba(170,183,201,.14)" stroke-width="1" fill="none" />
+        <path class="art-route" d={routePath} stroke="#42c8e8" stroke-width="2" fill="none" stroke-linecap="round" />
+        {routeCubes.map((c) => (
+          <g>
+            <polygon points={c.left} fill="#173b6d" />
+            <polygon points={c.right} fill="#0f2c52" />
+            <polygon points={c.top} fill="#4d8dff" />
+          </g>
+        ))}
+        <ellipse cx={route[2][0]} cy={route[2][1]} rx="10" ry="5" fill="#071426" stroke="#42c8e8" stroke-width="1.6" />
+        <text class="art-label" x={labelX} y={planes.bottom + 4}>{t.import}</text>
+        <path d={`M${CX + 184 + 4} ${planes.bottom}H${labelX - 6}`} stroke="rgba(170,183,201,.4)" stroke-width="1" />
+      </g>
+    </g>
+
+    <!-- middle layer: distribution -->
+    <g class="art-parallax" style="--dx:-6px;--dy:4px">
+      <g class="art-layer art-float-b">
+        <polygon points={pm.leftSide} fill="url(#ha-side-l)" stroke="rgba(127,176,255,.35)" stroke-width="1" />
+        <polygon points={pm.rightSide} fill="url(#ha-side-r)" stroke="rgba(127,176,255,.35)" stroke-width="1" />
+        <polygon points={pm.face} fill="url(#ha-top2)" stroke="url(#ha-edge)" stroke-width="1.4" />
+        <path d={pm.grid} stroke="rgba(170,183,201,.14)" stroke-width="1" fill="none" />
+        {spokesMid.map((s) => (
+          <path d={`M${f(hubMid[0])} ${f(hubMid[1])}L${f(s[0])} ${f(s[1])}`} stroke="#4d8dff" stroke-width="1.6" stroke-opacity=".8" fill="none" />
+        ))}
+        {spokesMid.map((s, i) => (
+          <ellipse class="art-node-pulse" style={`animation-delay:${i * 0.7}s`} cx={s[0]} cy={s[1]} rx="8" ry="4" fill="#42c8e8" />
+        ))}
+        <ellipse cx={hubMid[0]} cy={hubMid[1]} rx="13" ry="6.5" fill="#071426" stroke="#7fb0ff" stroke-width="2" />
+        <text class="art-label" x={labelX} y={planes.middle + 4}>{t.distribution}</text>
+        <path d={`M${CX + 184 + 4} ${planes.middle}H${labelX - 6}`} stroke="rgba(170,183,201,.4)" stroke-width="1" />
+      </g>
+    </g>
+
+    <!-- top layer: retail and B2B -->
+    <g class="art-parallax" style="--dx:-16px;--dy:-4px">
+      <g class="art-layer art-float-a">
+        <polygon points={pt.leftSide} fill="url(#ha-side-l)" stroke="rgba(127,176,255,.35)" stroke-width="1" />
+        <polygon points={pt.rightSide} fill="url(#ha-side-r)" stroke="rgba(127,176,255,.35)" stroke-width="1" />
+        <polygon points={pt.face} fill="url(#ha-top)" stroke="url(#ha-edge)" stroke-width="1.6" />
+        <path d={pt.grid} stroke="rgba(244,247,251,.16)" stroke-width="1" fill="none" />
+        {blocks.map((b) => (
+          <g>
+            <polygon points={b.c.left} fill="#173b6d" />
+            <polygon points={b.c.right} fill="#0f2c52" />
+            <polygon points={b.c.top} fill="#7fb0ff" />
+          </g>
+        ))}
+        <ellipse cx={hubTop[0]} cy={hubTop[1]} rx="40" ry="20" fill="url(#ha-hub)" />
+        <ellipse class="art-node-pulse" cx={hubTop[0]} cy={hubTop[1]} rx="22" ry="11" fill="none" stroke="#42c8e8" stroke-width="1.6" />
+        <ellipse cx={hubTop[0]} cy={hubTop[1]} rx="12" ry="6" fill="#071426" stroke="#42c8e8" stroke-width="2" />
+        <rect x={hubTop[0] - 3} y={hubTop[1] - 3} width="6" height="6" rx="1" fill="#c9a227" transform={`rotate(45 ${hubTop[0]} ${hubTop[1]})`} />
+        <text class="art-label art-label--hot" x={labelX} y={planes.top + 4}>{t.retail}</text>
+        <path d={`M${CX + 184 + 4} ${planes.top}H${labelX - 6}`} stroke="rgba(127,227,247,.6)" stroke-width="1" />
+        <text class="art-label art-label--hot" x={hubTop[0]} y={planes.top - 106} text-anchor="middle" style="font-size:11px">{t.hub}</text>
+        <path d={`M${hubTop[0]} ${planes.top - 98}V${planes.top - 60}`} stroke="rgba(127,227,247,.55)" stroke-width="1" />
+      </g>
+    </g>
+
+    <!-- vertical links between the layers -->
+    <path class="art-route" d={`M${f(route[2][0])} ${f(route[2][1] - 6)}V${f(hubMid[1] + 8)}`} stroke="#42c8e8" stroke-width="1.8" stroke-opacity=".85" fill="none" />
+    <path class="art-route" d={`M${f(hubMid[0])} ${f(hubMid[1] - 8)}V${f(hubTop[1] + 12)}`} stroke="#42c8e8" stroke-width="1.8" stroke-opacity=".85" fill="none" />
+
+    <!-- floating glass chips -->
+    {t.chips.map((label, i) => (
+      <g class={`art-layer art-chip ${['art-float-b', 'art-float-c', 'art-float-a'][i]}`}>
+        <g class="art-parallax" style={`--dx:${[-22, -12, -26][i]}px;--dy:${[-8, 6, 10][i]}px`}>
+          <rect x={chipPos[i][0]} y={chipPos[i][1]} width={chipW(label)} height="34" rx="17" fill="rgba(16,24,39,.82)" stroke="rgba(170,183,201,.35)" />
+          <circle cx={chipPos[i][0] + 17} cy={chipPos[i][1] + 17} r="4" fill="#42c8e8" />
+          <text x={chipPos[i][0] + 29} y={chipPos[i][1] + 21.5} font-family="Inter Variable, system-ui, sans-serif" font-size="13" font-weight="600" fill="#f4f7fb">{label}</text>
+        </g>
+      </g>
+    ))}
+  </svg>
+</div>

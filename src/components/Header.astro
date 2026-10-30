@@ -1,0 +1,49 @@
+---
+import BrandMark from './BrandMark.astro';
+import { href, LANGS, HREFLANG, LANG_SHORT, LANG_LABEL, type Lang } from '../lib/pages';
+import { ui } from '../i18n';
+interface Props { lang: Lang; pageId: string }
+const { lang, pageId } = Astro.props;
+const t = ui(lang);
+const section = pageId === 'home' ? 'home' : pageId === 'services' || pageId.startsWith('svc:') ? 'services' : pageId === 'insights' || pageId.startsWith('art:') ? 'insights' : pageId;
+const items = [
+  { id: 'home', label: t.nav.home },
+  { id: 'services', label: t.nav.services },
+  { id: 'about', label: t.nav.about },
+  { id: 'insights', label: t.nav.insights },
+  { id: 'contact', label: t.nav.contact },
+];
+---
+<header class="site-header" data-header>
+  <div class="container header-inner">
+    <a class="brand" href={href(lang, 'home')} aria-label={t.a11y.logo}>
+      <BrandMark class="brand__mark" />
+      <span class="brand__text">
+        <span class="brand__name">{t.siteName}</span>
+        <span class="brand__tag">{t.tagline}</span>
+      </span>
+    </a>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav" data-menu-toggle>
+      <span></span><span class="visually-hidden">{t.nav.menu}</span>
+    </button>
+    <nav class="nav" id="site-nav" aria-label={t.nav.primary} data-nav>
+      <div class="nav__panel">
+        <div class="nav__panel-inner">
+          <ul class="nav__list">
+            {items.map((it) => (
+              <li><a class="nav__link" href={href(lang, it.id)} aria-current={section === it.id ? 'page' : undefined}>{it.label}</a></li>
+            ))}
+          </ul>
+          <div class="nav__tools">
+            <div class="lang" role="group" aria-label={t.nav.language}>
+              {LANGS.map((l) => (
+                <a href={href(l, pageId)} lang={HREFLANG[l]} hreflang={HREFLANG[l]} title={LANG_LABEL[l]} aria-label={LANG_LABEL[l]} aria-current={l === lang ? 'true' : undefined}>{LANG_SHORT[l]}</a>
+              ))}
+            </div>
+            <a class="btn btn--primary btn--sm" href={href(lang, 'contact')}>{t.nav.cta}</a>
+          </div>
+        </div>
+      </div>
+    </nav>
+  </div>
+</header>
