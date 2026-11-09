@@ -1,0 +1,50 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Cta from '../components/Cta.astro';
+import Arrow from '../components/Arrow.astro';
+import { href, absUrl, SERVICE_IDS, type Lang } from '../lib/pages';
+import { getEntry, type ServiceMeta } from '../lib/content';
+import { ui } from '../i18n';
+import { graph, breadcrumbNode, websiteNode, personNode } from '../lib/schema';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = ui(lang);
+const p = t.servicesPage;
+const services = SERVICE_IDS.map((id) => ({ id, ...getEntry<ServiceMeta>(lang, id).frontmatter }));
+const ld = graph([
+  websiteNode(lang),
+  personNode(lang, false),
+  { '@type': 'CollectionPage', '@id': `${absUrl(lang, 'services')}#page`, url: absUrl(lang, 'services'), name: p.title, description: p.description, inLanguage: lang },
+  { '@type': 'ItemList', itemListElement: services.map((s, i) => ({ '@type': 'ListItem', position: i + 1, name: s.name, url: absUrl(lang, `svc:${s.id}`) })) },
+  breadcrumbNode([{ name: t.nav.home, url: absUrl(lang, 'home') }, { name: t.nav.services, url: absUrl(lang, 'services') }]),
+]);
+---
+<Base lang={lang} pageId="services" title={p.title} description={p.description} jsonLd={ld}>
+  <PageHero crumbs={[{ name: t.nav.home, href: href(lang, 'home') }, { name: t.nav.services }]} crumbsLabel={t.a11y.breadcrumbs} h1={p.h1} lead={p.lead} />
+  <section class="section section--tight">
+    <div class="container">
+      <div class="insights insights--list">
+        {services.map((s, i) => (
+          <a class="post reveal" style={`--d:${(i % 2) * 0.08}s`} href={href(lang, `svc:${s.id}`)}>
+            <div class="post__meta"><span class="post__topic">{String(i + 1).padStart(2, '0')}</span></div>
+            <h2 style="font-size:1.3rem">{s.name}</h2>
+            <p>{s.short}</p>
+            <span class="link-arrow">{t.common.learnMore}<Arrow /></span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+  <section class="section section--deep">
+    <div class="container">
+      <div class="section-head reveal"><h2 class="h2 h2--wide">{p.startTitle}</h2></div>
+      <ol class="route route--3">
+        {p.start.map((s, i) => (
+          <li class="route__item reveal" style={`--d:${i * 0.07}s`}><span class="route__dot">{i + 1}</span><div><h3>{s.t}</h3><p>{s.d}</p></div></li>
+        ))}
+      </ol>
+    </div>
+  </section>
+  <Cta lang={lang} />
+</Base>

@@ -1,0 +1,152 @@
+---
+// Hero visual: an optimised 3D illustration (three stacked levels: Belgrade, Distribution, Import)
+// + a light SVG layer (links, pins, pulses) + plain HTML labels and indicators.
+// No text is baked into the picture, so every label is real, translatable HTML.
+// Coordinates below are in pixels of the master picture (1315 x 1197); the crop box is the part that is published.
+import type { UI } from '../i18n';
+interface Props { t: UI['home']['art'] }
+const { t } = Astro.props;
+
+const BASE = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
+const asset = (n: string) => `${BASE}hero/serbia-3d-${n}`;
+
+// published crop of the master picture
+const X0 = 150, Y0 = 40, W = 1165, H = 1157;
+const pct = (v: number, o: number, s: number) => `${(((v - o) / s) * 100).toFixed(2)}%`;
+const at = (x: number, y: number) => `left:${pct(x, X0, W)};top:${pct(y, Y0, H)}`;
+
+// level corner nodes (right vertices of the three plates) and the vertical axis
+const R = { retail: [996, 371], distribution: [997, 614.5], importer: [1007, 873] } as const;
+const AX = 659.5;
+const HUB: [number, number] = [AX, 598];
+
+// real cities on the Serbia plate, projected from geographic coordinates (Natural Earth, public domain)
+const pins: { n: string; x: number; y: number; d: number }[] = [
+  { n: 'Subotica', x: 572.75, y: 557.33, d: 0 },
+  { n: 'Novi Sad', x: 607.99, y: 587.25, d: 0.9 },
+  { n: 'Uzice', x: 651.23, y: 640.69, d: 1.8 },
+  { n: 'Kragujevac', x: 710.82, y: 624.04, d: 2.7 },
+  { n: 'Nis', x: 791.01, y: 640.44, d: 1.3 },
+];
+// conceptual links hub -> city (an illustration of distribution, not a real route network)
+const arcs = [
+  'M659.5 598Q616.1 534.9 572.8 557.3',
+  'M659.5 598Q633.7 562.8 608 587.2',
+  'M659.5 598Q655.4 592.3 651.2 640.7',
+  'M659.5 598Q685.2 579.8 710.8 624',
+  'M659.5 598Q725.3 563.8 791 640.4',
+];
+const rail = `M${R.importer[0]} ${R.importer[1]}C1052 810 1046 700 ${R.distribution[0]} ${R.distribution[1]}C1048 540 1044 440 ${R.retail[0]} ${R.retail[1]}`;
+
+const levels = [
+  { k: 'retail', p: R.retail, tag: t.hub, name: t.retail },
+  { k: 'distribution', p: R.distribution, tag: '', name: t.distribution },
+  { k: 'import', p: R.importer, tag: '', name: t.import },
+];
+
+const icons = [
+  // landed cost: calculator
+  '<rect x="5" y="3" width="14" height="18" rx="2.4"/><path d="M8.5 7.5h7M8.5 12h.01M12 12h.01M15.5 12h.01M8.5 16h.01M12 16h.01M15.5 16h.01"/>',
+  // distributor shortlist: checked list
+  '<path d="M10 6.5h10M10 12h10M10 17.5h10"/><path d="m3.6 6.6 1.3 1.3 2.4-2.6M3.6 12.1l1.3 1.3 2.4-2.6M3.6 17.6l1.3 1.3 2.4-2.6"/>',
+  // weekly report: bars
+  '<path d="M4 20.5V11M10 20.5V4M16 20.5v-6.5M2.5 20.5h19"/>',
+];
+---
+
+<div class="scene hero__art">
+  <div class="scene__stage">
+    <div class="scene__crop">
+      <div class="scene__frame">
+        <picture>
+          <!-- phone: art-directed tighter crop (885 x 1100 of the master), much lighter than the full picture -->
+          <source media="(max-width: 560px)" type="image/avif" srcset={`${asset('m-440.avif')} 440w, ${asset('m-660.avif')} 660w, ${asset('m-885.avif')} 885w`} sizes="calc(100vw - 36px)" />
+          <source media="(max-width: 560px)" type="image/webp" srcset={`${asset('m-440.webp')} 440w, ${asset('m-660.webp')} 660w, ${asset('m-885.webp')} 885w`} sizes="calc(100vw - 36px)" />
+          <source type="image/avif" srcset={`${asset('480.avif')} 480w, ${asset('768.avif')} 768w, ${asset('1165.avif')} 1165w`} sizes="(min-width: 981px) 540px, 680px" />
+          <source type="image/webp" srcset={`${asset('480.webp')} 480w, ${asset('768.webp')} 768w, ${asset('1165.webp')} 1165w`} sizes="(min-width: 981px) 540px, 680px" />
+          <img class="scene__img" src={asset('768.webp')} width="1165" height="1157" alt={t.alt} decoding="async" />
+        </picture>
+
+        <svg class="scene__fx" viewBox={`${X0} ${Y0} ${W} ${H}`} aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="hx-glow">
+              <stop offset="0" stop-color="#8fe9ff" stop-opacity="0.9" />
+              <stop offset="0.4" stop-color="#42c8e8" stop-opacity="0.3" />
+              <stop offset="1" stop-color="#42c8e8" stop-opacity="0" />
+            </radialGradient>
+          </defs>
+
+          <!-- soft halos behind the two baked rings (Belgrade, Import) -->
+          <ellipse class="fx-halo" cx="660" cy="367" rx="96" ry="32" fill="url(#hx-glow)" />
+          <ellipse class="fx-halo fx-halo--b" cx="660" cy="878" rx="46" ry="17" fill="url(#hx-glow)" />
+
+          <!-- rail on the right edge connecting the corner nodes -->
+          <path class="fx-rail" d={rail} />
+          <path class="fx-rail-pulse" d={rail} pathLength="100" />
+
+          <!-- vertical link between the levels -->
+          <path class="fx-link" d={`M${AX} 552V${HUB[1]}`} />
+          <path class="fx-link fx-link--b" d={`M${AX} 807V872`} />
+          <path class="fx-link-pulse fx-link-pulse--a" d={`M${AX} 872V807`} pathLength="100" />
+          <path class="fx-link-pulse fx-link-pulse--b" d={`M${AX} ${HUB[1]}V552`} pathLength="100" />
+
+          <!-- conceptual links from the Belgrade hub to cities -->
+          <g class="fx-arcs">
+            {arcs.map((d, i) => (
+              <>
+                <path class="fx-arc" d={d} />
+                <path class="fx-arc-pulse" d={d} pathLength="100" style={`--d:${(i * 0.9).toFixed(1)}s`} />
+              </>
+            ))}
+          </g>
+
+          <!-- hub -->
+          <ellipse class="fx-hub-halo" cx={HUB[0]} cy={HUB[1]} rx="30" ry="14" fill="url(#hx-glow)" />
+          <ellipse class="fx-hub-ring" cx={HUB[0]} cy={HUB[1]} rx="15" ry="7" />
+          <circle class="fx-hub-core" cx={HUB[0]} cy={HUB[1]} r="4.2" />
+
+          <!-- city pins -->
+          {pins.map((p) => (
+            <g class="fx-pin" style={`--d:${p.d}s`}>
+              <ellipse class="fx-pin-wave" cx={p.x} cy={p.y} rx="3.2" ry="1.7" />
+              <circle cx={p.x} cy={p.y} r="2.9" />
+            </g>
+          ))}
+
+          <!-- corner and joint nodes -->
+          <g class="fx-nodes">
+            <circle cx={R.retail[0]} cy={R.retail[1]} r="3.4" />
+            <circle cx={R.distribution[0]} cy={R.distribution[1]} r="3.4" />
+            <circle cx={R.importer[0]} cy={R.importer[1]} r="3.4" />
+            <circle cx={AX} cy="552" r="2.6" />
+            <circle cx={AX} cy="807" r="2.6" />
+          </g>
+        </svg>
+        <!-- level numbers on the plates, shown only in the compact (phone) layout -->
+        <ul class="scene__pins" aria-hidden="true">
+          {levels.map((l, i) => (<li style={at(l.p[0] - 20, l.p[1] + 4)}>{i + 1}</li>))}
+        </ul>
+      </div>
+    </div>
+
+    <!-- level labels: real text, positioned beside the right corner of each plate -->
+    <ul class="scene__levels">
+      {levels.map((l) => (
+        <li class={`lvl lvl--${l.k}`} style={at(l.p[0], l.p[1])}>
+          {l.tag && <span class="lvl__tag">{l.tag}</span>}
+          <b class="lvl__name">{l.name}</b>
+        </li>
+      ))}
+    </ul>
+  </div>
+
+  <ul class="scene__chips">
+    {t.chips.map((c, i) => (
+      <li class="sc">
+        <span class="sc__ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={icons[i]} /></span>
+        <span class="sc__t">{c}</span>
+        <i class="sc__led" aria-hidden="true"></i>
+      </li>
+    ))}
+  </ul>
+</div>

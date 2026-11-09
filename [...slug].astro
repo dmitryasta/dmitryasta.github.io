@@ -1,0 +1,33 @@
+---
+import { LANGS, PAGES, DEFAULT_LANG, type Lang } from '../lib/pages';
+import HomePage from '../components/HomePage.astro';
+import AboutPage from '../components/AboutPage.astro';
+import ServicesPage from '../components/ServicesPage.astro';
+import ServicePage from '../components/ServicePage.astro';
+import InsightsPage from '../components/InsightsPage.astro';
+import ArticlePage from '../components/ArticlePage.astro';
+import ContactPage from '../components/ContactPage.astro';
+import PrivacyPage from '../components/PrivacyPage.astro';
+
+export function getStaticPaths() {
+  const out: { params: { slug: string | undefined }; props: { lang: Lang; id: string; kind: string } }[] = [];
+  for (const lang of LANGS) {
+    for (const p of PAGES) {
+      const slug = ((lang === DEFAULT_LANG ? '' : `${lang}/`) + p.path).replace(/\/$/, '');
+      out.push({ params: { slug: slug || undefined }, props: { lang, id: p.id, kind: p.kind } });
+    }
+  }
+  return out;
+}
+const { lang, id, kind } = Astro.props as { lang: Lang; id: string; kind: string };
+const svcId = id.startsWith('svc:') ? id.slice(4) : id;
+const artId = id.startsWith('art:') ? id.slice(4) : id;
+---
+{kind === 'home' && <HomePage lang={lang} />}
+{kind === 'about' && <AboutPage lang={lang} />}
+{kind === 'services' && <ServicesPage lang={lang} />}
+{kind === 'service' && <ServicePage lang={lang} id={svcId} />}
+{kind === 'insights' && <InsightsPage lang={lang} />}
+{kind === 'article' && <ArticlePage lang={lang} id={artId} />}
+{kind === 'contact' && <ContactPage lang={lang} />}
+{kind === 'privacy' && <PrivacyPage lang={lang} />}

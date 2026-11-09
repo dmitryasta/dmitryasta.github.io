@@ -1,0 +1,49 @@
+---
+import BrandMark from './BrandMark.astro';
+import { href, SERVICE_IDS, type Lang } from '../lib/pages';
+import { ui } from '../i18n';
+import { getEntry, type ServiceMeta } from '../lib/content';
+import { SITE } from '../lib/site';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = ui(lang);
+const services = SERVICE_IDS.map((id) => ({ id, name: getEntry<ServiceMeta>(lang, id).frontmatter.name }));
+---
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-about">
+        <a class="brand" href={href(lang, 'home')} aria-label={t.a11y.logo}>
+          <BrandMark class="brand__mark" />
+          <span class="brand__text"><span class="brand__name">{t.siteName}</span><span class="brand__tag">{t.tagline}</span></span>
+        </a>
+        <p>{t.footer.about}</p>
+      </div>
+      <div>
+        <h2>{t.footer.services}</h2>
+        <ul>{services.map((s) => <li><a href={href(lang, `svc:${s.id}`)}>{s.name}</a></li>)}</ul>
+      </div>
+      <div>
+        <h2>{t.footer.pages}</h2>
+        <ul>
+          <li><a href={href(lang, 'about')}>{t.nav.about}</a></li>
+          <li><a href={href(lang, 'insights')}>{t.nav.insights}</a></li>
+          <li><a href={href(lang, 'contact')}>{t.nav.contact}</a></li>
+          <li><a href={href(lang, 'privacy')}>{t.footer.privacy}</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>{t.footer.contact}</h2>
+        <ul>
+          <li><a href={`mailto:${SITE.email}`}>{SITE.email}</a></li>
+          <li><a href={SITE.linkedin} rel="me noopener" target="_blank">LinkedIn</a></li>
+          <li>{SITE.city}, {SITE.country}</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-legal">
+      <p>{t.footer.legal}</p>
+      <p>{t.footer.copy}</p>
+    </div>
+  </div>
+</footer>

@@ -1,0 +1,90 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHero from '../components/PageHero.astro';
+import Cta from '../components/Cta.astro';
+import Faq from '../components/Faq.astro';
+import BrandMark from '../components/BrandMark.astro';
+import Arrow from '../components/Arrow.astro';
+import { href, absUrl, absAsset, HREFLANG, type Lang } from '../lib/pages';
+import { getEntry, readingMinutes, type ServiceMeta, type ArticleMeta } from '../lib/content';
+import { ui, inline } from '../i18n';
+import { SITE } from '../lib/site';
+import { SERVICE_TOPIC } from '../lib/form';
+import { graph, breadcrumbNode, faqNode, websiteNode, personNode, personId } from '../lib/schema';
+interface Props { lang: Lang; id: string }
+const { lang, id } = Astro.props;
+const t = ui(lang);
+const e = getEntry<ArticleMeta>(lang, id);
+const m = e.frontmatter;
+const Body = e.Content;
+const pageId = `art:${id}`;
+const minutes = readingMinutes(e.rawContent());
+const services = m.relatedServices.map((s) => ({ id: s, name: getEntry<ServiceMeta>(lang, s).frontmatter.name }));
+const articles = m.relatedArticles.map((a) => ({ id: a, ...getEntry<ArticleMeta>(lang, a).frontmatter }));
+const modified = m.updated || m.date;
+const topic = SERVICE_TOPIC[m.relatedServices[0]];
+const contactHref = `${href(lang, 'contact')}${topic ? `?topic=${topic}` : ''}#enquiry`;
+const ld = graph([
+  websiteNode(lang),
+  personNode(lang, false),
+  {
+    '@type': 'Article',
+    '@id': `${absUrl(lang, pageId)}#article`,
+    headline: m.h1,
+    description: m.description,
+    inLanguage: HREFLANG[lang],
+    datePublished: m.date,
+    dateModified: modified,
+    mainEntityOfPage: absUrl(lang, pageId),
+    url: absUrl(lang, pageId),
+    image: absAsset(`og/og-${lang}.png`),
+    author: { '@id': personId() },
+    publisher: { '@id': personId() },
+    about: m.topic,
+    citation: m.sources.map((s) => s.url),
+  },
+  breadcrumbNode([{ name: t.nav.home, url: absUrl(lang, 'home') }, { name: t.nav.insights, url: absUrl(lang, 'insights') }, { name: m.h1, url: absUrl(lang, pageId) }]),
+  faqNode(m.faq),
+]);
+---
+<Base lang={lang} pageId={pageId} title={m.title} description={m.description} type="article" published={m.date} modified={modified} jsonLd={ld}>
+  <PageHero crumbs={[{ name: t.nav.home, href: href(lang, 'home') }, { name: t.nav.insights, href: href(lang, 'insights') }, { name: m.h1 }]} crumbsLabel={t.a11y.breadcrumbs} eyebrow={m.topic} h1={m.h1}>
+    <p class="byline"><span>{t.common.by}: <b>{SITE.name}</b></span><span>{t.common.published}: <time datetime={m.date}>{m.date}</time></span>{m.updated && <span>{t.common.updated}: <time datetime={m.updated}>{m.updated}</time></span>}<span>{minutes} {t.common.readingTime}</span></p>
+  </PageHero>
+  <section class="section section--tight">
+    <div class="container cols">
+      <article>
+        <div class="keypoints">
+          <h2>{t.common.keyPoints}</h2>
+          <ul class="ticks">{m.keyPoints.map((k) => <li set:html={inline(k)}></li>)}</ul>
+        </div>
+        <div class="prose"><Body /></div>
+        <p class="disclaimer">{t.common.reviewNote}</p>
+        <section class="sources" aria-labelledby="src-h">
+          <h2 id="src-h">{t.common.sources}</h2>
+          <ol>{m.sources.map((s) => <li><a href={s.url} rel="noopener" target="_blank">{s.title}</a>{s.note ? ` — ${s.note}` : ''}</li>)}</ol>
+        </section>
+        <section style="margin-top:56px" aria-labelledby="faq-h">
+          <h2 id="faq-h" style="font-size:1.5rem;margin-bottom:16px">{t.common.faq}</h2>
+          <Faq items={m.faq} />
+        </section>
+        <div class="author">
+          <BrandMark class="author__mono" size={64} />
+          <p><b>{SITE.name}</b><br />{t.common.aboutAuthor} <a href={href(lang, 'about')}>{t.common.authorLink}</a></p>
+        </div>
+      </article>
+      <aside class="aside">
+        <div class="panel">
+          <h2>{t.common.relatedServices}</h2>
+          <ul>{services.map((s) => <li><a href={href(lang, `svc:${s.id}`)}>{s.name}</a></li>)}</ul>
+        </div>
+        <div class="panel">
+          <h2>{t.common.relatedArticles}</h2>
+          <ul>{articles.map((a) => <li><a href={href(lang, `art:${a.id}`)}>{a.h1}</a></li>)}</ul>
+        </div>
+        <a class="btn btn--primary" href={contactHref}>{t.common.contactCta}</a>
+      </aside>
+    </div>
+  </section>
+  <Cta lang={lang} pageId={pageId} topic={topic} />
+</Base>
