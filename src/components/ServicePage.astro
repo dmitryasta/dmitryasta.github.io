@@ -8,6 +8,7 @@ import { href, absUrl, SERVICE_IDS, type Lang } from '../lib/pages';
 import { getEntry, type ServiceMeta, type ArticleMeta } from '../lib/content';
 import { ui } from '../i18n';
 import { SITE } from '../lib/site';
+import { SERVICE_TOPIC } from '../lib/form';
 import { graph, breadcrumbNode, faqNode, websiteNode, personNode, personId } from '../lib/schema';
 interface Props { lang: Lang; id: string }
 const { lang, id } = Astro.props;
@@ -16,6 +17,7 @@ const e = getEntry<ServiceMeta>(lang, id);
 const m = e.frontmatter;
 const Body = e.Content;
 const pageId = `svc:${id}`;
+const topic = SERVICE_TOPIC[id];
 const others = SERVICE_IDS.filter((x) => x !== id).map((x) => ({ id: x, name: getEntry<ServiceMeta>(lang, x).frontmatter.name }));
 const related = m.related.map((r) => ({ id: r, ...getEntry<ArticleMeta>(lang, r).frontmatter }));
 const ld = graph([
@@ -40,7 +42,7 @@ const ld = graph([
 <Base lang={lang} pageId={pageId} title={m.title} description={m.description} jsonLd={ld}>
   <PageHero crumbs={[{ name: t.nav.home, href: href(lang, 'home') }, { name: t.nav.services, href: href(lang, 'services') }, { name: m.name }]} crumbsLabel={t.a11y.breadcrumbs} eyebrow={t.nav.services} h1={m.h1} lead={m.lead}>
     <div class="page-hero__actions">
-      <a class="btn btn--primary" href={href(lang, 'contact')}>{t.common.contactCta}<Arrow /></a>
+      <a class="btn btn--primary" href="#enquiry">{t.common.contactCta}<Arrow /></a>
       <a class="btn btn--ghost" href={`mailto:${SITE.email}`}>{SITE.email}</a>
     </div>
   </PageHero>
@@ -82,9 +84,9 @@ const ld = graph([
           <h2>{t.common.relatedServices}</h2>
           <ul>{others.map((o) => <li><a href={href(lang, `svc:${o.id}`)}>{o.name}</a></li>)}</ul>
         </div>
-        <a class="btn btn--primary" href={href(lang, 'contact')}>{t.nav.cta}</a>
+        <a class="btn btn--primary" href="#enquiry">{t.common.contactCta}</a>
       </aside>
     </div>
   </section>
-  <Cta lang={lang} />
+  <Cta lang={lang} pageId={pageId} form={true} topic={topic} />
 </Base>

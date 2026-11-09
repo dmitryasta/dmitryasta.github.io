@@ -50,7 +50,7 @@ const ld = graph([
             <tbody>{a.brief.map((r) => <tr><th scope="row">{r.k}</th><td>{r.v}</td></tr>)}</tbody>
           </table>
         </div>
-        <a class="btn btn--primary" href={`mailto:${SITE.email}`}>{t.nav.cta}</a>
+        <a class="btn btn--primary" href={`${href(lang, 'contact')}#enquiry`}>{t.common.contactCta}</a>
         <a class="btn btn--ghost" href={SITE.linkedin} rel="me noopener" target="_blank">LinkedIn</a>
       </aside>
     </div>

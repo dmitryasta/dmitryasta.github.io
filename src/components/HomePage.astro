@@ -15,10 +15,12 @@ interface Props { lang: Lang }
 const { lang } = Astro.props;
 const t = ui(lang);
 const h = t.home;
-const services = SERVICE_IDS.map((id) => ({ id, ...getEntry<ServiceMeta>(lang, id).frontmatter }));
+const svc = (id: string) => getEntry<ServiceMeta>(lang, id).frontmatter;
+const TASK_SERVICES = ['serbia-market-entry', 'find-distributors-in-serbia', 'import-to-serbia', 'local-commercial-representation', 'business-automation'];
+const EXTRA_SERVICES = ['local-commercial-representation', 'serbia-market-research', 'export-from-serbia', 'business-automation'];
+const contactHref = `${href(lang, 'contact')}#enquiry`;
 const articles = ARTICLE_IDS.slice(0, 3).map((id) => ({ id, ...getEntry<ArticleMeta>(lang, id).frontmatter }));
 const recs = RECOMMENDATIONS[lang];
-const tileClass = ['tile--hero', 'tile--w3', 'tile--w3', 'tile--w2', 'tile--w2', 'tile--w2', 'tile--w6'];
 const ld = graph([
   websiteNode(lang),
   personNode(lang, true),
@@ -38,10 +40,11 @@ const ld = graph([
             <span class="chip"><i></i>{h.hero.chip}</span>
             <strong>{h.hero.brand}</strong>
           </div>
-          <h1>{h.hero.h1a} <span class="grad">{h.hero.h1b}</span></h1>
+          <h1><span class="h1__l">{h.hero.h1[0]}</span> <span class="h1__l">{h.hero.h1[1]}</span> <span class="h1__l grad">{h.hero.h1[2]}</span></h1>
           <p class="hero__sub">{h.hero.sub}</p>
+          <p class="hero__proof">{h.hero.proof}</p>
           <div class="hero__cta">
-            <a class="btn btn--primary" href={href(lang, 'contact')}>{h.hero.cta1}<Arrow /></a>
+            <a class="btn btn--primary" href={contactHref}>{h.hero.cta1}<Arrow /></a>
             <a class="btn btn--ghost" href={href(lang, 'services')}>{h.hero.cta2}</a>
           </div>
           <a class="hero__lin" href={SITE.linkedin} rel="me noopener" target="_blank"><b></b>{h.hero.linkedin}</a>
@@ -56,6 +59,29 @@ const ld = graph([
     </div>
   </section>
 
+  <section class="section" id="outcomes" aria-labelledby="tasks-h">
+    <div class="container tasks">
+      <div class="tasks__intro reveal">
+        <span class="eyebrow">{h.tasks.eyebrow}</span>
+        <h2 class="h2" id="tasks-h">{h.tasks.h2}</h2>
+        <p class="lead">{h.tasks.lead}</p>
+        <a class="btn btn--primary" href={contactHref}>{t.common.contactCta}<Arrow /></a>
+      </div>
+      <ol class="tasks__list">
+        {h.tasks.items.map((it, i) => (
+          <li class="task reveal" style={`--d:${i * 0.06}s`}>
+            <span class="task__no" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+            <div>
+              <h3>{it.t}</h3>
+              <p>{it.d}</p>
+              <a class="link-arrow" href={href(lang, `svc:${TASK_SERVICES[i]}`)}>{svc(TASK_SERVICES[i]).name}<Arrow /></a>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
   <section class="section section--alt" id="services" aria-labelledby="services-h">
     <div class="container">
       <div class="section-head reveal">
@@ -63,41 +89,30 @@ const ld = graph([
         <h2 class="h2 h2--wide" id="services-h">{h.services.h2}</h2>
         <p class="lead">{h.services.lead}</p>
       </div>
-      <div class="bento">
-        {services.map((s, i) => (
-          <a class={`tile ${tileClass[i]} reveal`} style={`--d:${(i % 3) * 0.08}s`} href={href(lang, `svc:${s.id}`)}>
-            {i === 6 ? (
-              <>
-                <div class="tile__col">
-                  <span class="tile__no">{String(i + 1).padStart(2, '0')}</span>
-                  <h3>{s.name}</h3>
-                  <p>{s.short}</p>
-                  <span class="link-arrow">{h.services.open}<Arrow /></span>
-                </div>
-                <ol class="flow" aria-hidden="true">{h.services.flow.map((x) => <li>{x}</li>)}</ol>
-              </>
-            ) : (
-              <>
-                <span class="tile__no">{String(i + 1).padStart(2, '0')}</span>
-                <h3>{s.name}</h3>
-                <p>{s.short}</p>
-                {i === 0 && (
-                  <svg class="tile__art" viewBox="0 0 340 150" aria-hidden="true" focusable="false">
-                    <defs><linearGradient id="ta" x1="0" x2="1"><stop offset="0" stop-color="#4d8dff" /><stop offset="1" stop-color="#42c8e8" /></linearGradient></defs>
-                    <g fill="none" stroke="url(#ta)" stroke-width="1.4">
-                      <polygon points="170,12 318,70 170,128 22,70" stroke-opacity=".9" />
-                      <polygon points="170,34 270,70 170,106 70,70" stroke-opacity=".6" />
-                      <polygon points="170,54 220,70 170,88 120,70" stroke-opacity=".4" />
-                    </g>
-                    <circle cx="170" cy="70" r="5" fill="#42c8e8" />
-                    <path d="M22 70H0M318 70h22" stroke="#aab7c9" stroke-opacity=".35" />
-                  </svg>
-                )}
-                <span class="link-arrow">{h.services.open}<Arrow /></span>
-              </>
-            )}
+      <div class="directions">
+        {h.services.directions.map((d, i) => (
+          <a class="tile reveal" style={`--d:${i * 0.08}s`} href={href(lang, `svc:${d.svc}`)}>
+            <span class="tile__no">{d.no}</span>
+            <h3>{d.t}</h3>
+            <p>{d.d}</p>
+            <ul class="ticks ticks--sm">{d.points.map((x) => <li>{x}</li>)}</ul>
+            <span class="link-arrow">{h.services.open}<Arrow /></span>
           </a>
         ))}
+      </div>
+      <div class="extras reveal">
+        <h3 class="extras__title">{h.services.extraTitle}</h3>
+        <p class="extras__lead">{h.services.extraLead}</p>
+        <div class="minis">
+          {EXTRA_SERVICES.map((id) => (
+            <a class="mini" href={href(lang, `svc:${id}`)}>
+              <h4>{svc(id).name}</h4>
+              <p>{svc(id).short}</p>
+              <span class="link-arrow">{h.services.open}<Arrow /></span>
+            </a>
+          ))}
+        </div>
+        <p style="margin-top:22px"><a class="link-arrow" href={href(lang, 'services')}>{t.common.allServices}<Arrow /></a></p>
       </div>
     </div>
   </section>
@@ -178,22 +193,23 @@ const ld = graph([
         <h2 class="h2 h2--wide" id="cases-h">{h.cases.h2}</h2>
         <p class="lead">{h.cases.lead}</p>
       </div>
-      <div class="dossiers">
-        {h.cases.items.map((c) => (
-          <article class="dossier reveal">
-            <div class="dossier__rail">
+      <div class="cases-grid">
+        {h.cases.items.map((c, i) => (
+          <article class="case reveal" style={`--d:${i * 0.08}s`}>
+            <header class="case__head">
               <span class="dossier__id">{c.id}</span>
               <h3>{c.title}</h3>
-              <span class="dossier__years">{c.years}</span>
+              <span class="case__years">{c.years}</span>
               <span class="dossier__badge">{t.common.selfReported}</span>
-            </div>
-            <dl class="dossier__body">
-              <div class="dossier__row"><dt>{h.cases.fields.task}</dt><dd>{c.task}</dd></div>
-              <div class="dossier__row"><dt>{h.cases.fields.context}</dt><dd>{c.context}</dd></div>
-              <div class="dossier__row"><dt>{h.cases.fields.role}</dt><dd>{c.role}</dd></div>
-              <div class="dossier__row"><dt>{h.cases.fields.actions}</dt><dd><ul>{c.actions.map((a) => <li>{a}</li>)}</ul></dd></div>
-              <div class="dossier__row"><dt>{h.cases.fields.result}</dt><dd>{c.result}</dd></div>
-              <div class="dossier__row"><dt>{h.cases.fields.sources}</dt><dd class="dossier__src">{c.sources}</dd></div>
+            </header>
+            <ul class="kpis" aria-label={h.cases.fields.outcome}>
+              {c.kpis.map((k) => <li><b>{k.v}</b><span>{k.l}</span></li>)}
+            </ul>
+            <dl class="case__body">
+              <div class="case__row"><dt>{h.cases.fields.challenge}</dt><dd>{c.challenge}</dd></div>
+              <div class="case__row"><dt>{h.cases.fields.role}</dt><dd>{c.role}</dd></div>
+              <div class="case__row"><dt>{h.cases.fields.actions}</dt><dd><ul>{c.actions.map((a) => <li>{a}</li>)}</ul></dd></div>
+              <div class="case__row"><dt>{h.cases.fields.outcome}</dt><dd>{c.outcome}</dd></div>
             </dl>
           </article>
         ))}
@@ -202,7 +218,7 @@ const ld = graph([
     </div>
   </section>
 
-  <section class="section" id="recommendations" aria-labelledby="recs-h">
+  <section class="section section--tight" id="profile" aria-labelledby="recs-h">
     <div class="container">
       <div class="section-head reveal">
         <span class="eyebrow">{h.recs.eyebrow}</span>
@@ -260,5 +276,5 @@ const ld = graph([
     </div>
   </section>
 
-  <Cta lang={lang} />
+  <Cta lang={lang} pageId="home" />
 </Base>
