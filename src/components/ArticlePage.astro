@@ -9,6 +9,7 @@ import { href, absUrl, absAsset, HREFLANG, type Lang } from '../lib/pages';
 import { getEntry, readingMinutes, type ServiceMeta, type ArticleMeta } from '../lib/content';
 import { ui, inline } from '../i18n';
 import { SITE } from '../lib/site';
+import { SERVICE_TOPIC } from '../lib/form';
 import { graph, breadcrumbNode, faqNode, websiteNode, personNode, personId } from '../lib/schema';
 interface Props { lang: Lang; id: string }
 const { lang, id } = Astro.props;
@@ -21,6 +22,8 @@ const minutes = readingMinutes(e.rawContent());
 const services = m.relatedServices.map((s) => ({ id: s, name: getEntry<ServiceMeta>(lang, s).frontmatter.name }));
 const articles = m.relatedArticles.map((a) => ({ id: a, ...getEntry<ArticleMeta>(lang, a).frontmatter }));
 const modified = m.updated || m.date;
+const topic = SERVICE_TOPIC[m.relatedServices[0]];
+const contactHref = `${href(lang, 'contact')}${topic ? `?topic=${topic}` : ''}#enquiry`;
 const ld = graph([
   websiteNode(lang),
   personNode(lang, false),
@@ -79,9 +82,9 @@ const ld = graph([
           <h2>{t.common.relatedArticles}</h2>
           <ul>{articles.map((a) => <li><a href={href(lang, `art:${a.id}`)}>{a.h1}</a></li>)}</ul>
         </div>
-        <a class="btn btn--primary" href={href(lang, 'contact')}>{t.nav.cta}</a>
+        <a class="btn btn--primary" href={contactHref}>{t.common.contactCta}</a>
       </aside>
     </div>
   </section>
-  <Cta lang={lang} />
+  <Cta lang={lang} pageId={pageId} topic={topic} />
 </Base>

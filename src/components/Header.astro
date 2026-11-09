@@ -40,7 +40,7 @@ const items = [
                 <a href={href(l, pageId)} lang={HREFLANG[l]} hreflang={HREFLANG[l]} title={LANG_LABEL[l]} aria-label={LANG_LABEL[l]} aria-current={l === lang ? 'true' : undefined}>{LANG_SHORT[l]}</a>
               ))}
             </div>
-            <a class="btn btn--primary btn--sm" href={href(lang, 'contact')}>{t.nav.cta}</a>
+            <a class="btn btn--primary btn--sm" href={`${href(lang, 'contact')}#enquiry`}>{t.nav.cta}</a>
           </div>
         </div>
       </div>

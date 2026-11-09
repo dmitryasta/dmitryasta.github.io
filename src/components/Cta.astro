@@ -1,25 +1,52 @@
 ---
+import ContactForm from './ContactForm.astro';
+import Arrow from './Arrow.astro';
 import { href, type Lang } from '../lib/pages';
 import { ui } from '../i18n';
 import { SITE } from '../lib/site';
-interface Props { lang: Lang }
-const { lang } = Astro.props;
+import type { Topic } from '../lib/form';
+interface Props {
+  lang: Lang;
+  pageId?: string;
+  /** Embed the enquiry form in the band (service pages). Without it the band links to the form on the Contact page. */
+  form?: boolean;
+  /** Topic of the form: preselected in the embedded form, or passed to the Contact page in the link. */
+  topic?: Topic;
+}
+const { lang, pageId = 'contact', form = false, topic } = Astro.props;
 const t = ui(lang);
+const contactHref = `${href(lang, 'contact')}${topic ? `?topic=${topic}` : ''}#enquiry`;
 ---
-<section class="section--tight" aria-labelledby="cta-h">
-  <div class="container">
-    <div class="cta reveal">
-      <h2 id="cta-h">{t.home.cta.h2}</h2>
-      <p>{t.home.cta.text}</p>
-      <div class="cta__row">
-        <a class="btn btn--primary" href={`mailto:${SITE.email}`}>{t.home.cta.mail}
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
-        </a>
-        <a class="btn btn--ghost" href={SITE.linkedin} rel="me noopener" target="_blank">{t.home.cta.linkedin}</a>
-        <a class="link-arrow" href={href(lang, 'contact')}>{t.nav.contact}
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
-        </a>
+{form ? (
+  <section class="section--tight" aria-labelledby="cta-h">
+    <div class="container">
+      <div class="cta cta--form reveal">
+        <div class="cta__copy">
+          <h2 id="cta-h">{t.form.title}</h2>
+          <p>{t.home.cta.text}</p>
+          <div class="cta__direct">
+            <a class="link-arrow" href={`mailto:${SITE.email}`}>{SITE.email}</a>
+            <a class="link-arrow" href={SITE.linkedin} rel="me noopener" target="_blank">{t.common.linkedinLabel}</a>
+          </div>
+        </div>
+        <div class="enquiry__card">
+          <ContactForm lang={lang} pageId={pageId} topic={topic} showTitle={false} />
+        </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
+) : (
+  <section class="section--tight" aria-labelledby="cta-h">
+    <div class="container">
+      <div class="cta reveal">
+        <h2 id="cta-h">{t.home.cta.h2}</h2>
+        <p>{t.home.cta.text}</p>
+        <div class="cta__row">
+          <a class="btn btn--primary" href={contactHref}>{t.common.contactCta}<Arrow /></a>
+          <a class="btn btn--ghost" href={`mailto:${SITE.email}`}>{t.home.cta.mail}</a>
+          <a class="link-arrow" href={SITE.linkedin} rel="me noopener" target="_blank">{t.common.linkedinLabel}</a>
+        </div>
+      </div>
+    </div>
+  </section>
+)}

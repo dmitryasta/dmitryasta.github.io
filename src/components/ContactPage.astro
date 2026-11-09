@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import PageHero from '../components/PageHero.astro';
+import ContactForm from '../components/ContactForm.astro';
 import Arrow from '../components/Arrow.astro';
 import { href, absUrl, type Lang } from '../lib/pages';
 import { ui } from '../i18n';
@@ -21,29 +22,27 @@ const ld = graph([
   <PageHero crumbs={[{ name: t.nav.home, href: href(lang, 'home') }, { name: t.nav.contact }]} crumbsLabel={t.a11y.breadcrumbs} h1={c.h1} lead={c.lead} />
   <section class="section section--tight">
     <div class="container stack">
-      <div class="contact-grid">
-        <div class="contact-card reveal">
-          <h2>{c.emailTitle}</h2>
-          <a class="big" href={`mailto:${SITE.email}`}>{SITE.email}</a>
-          <p>{c.emailText}</p>
-          <a class="btn btn--primary btn--sm" href={`mailto:${SITE.email}`} style="justify-self:start">{t.home.cta.mail}<Arrow /></a>
+      <div class="contact-layout">
+        <div class="enquiry__card reveal">
+          <ContactForm lang={lang} pageId="contact" topicFromUrl={true} />
         </div>
-        <div class="contact-card reveal" style="--d:.08s">
-          <h2>{c.linkedinTitle}</h2>
-          <a class="big" href={SITE.linkedin} rel="me noopener" target="_blank">linkedin.com/in/dmitry-astakhov-6a153b</a>
-          <p>{c.linkedinText}</p>
-          <a class="btn btn--ghost btn--sm" href={SITE.linkedin} rel="me noopener" target="_blank" style="justify-self:start">{t.home.cta.linkedin}</a>
+        <div class="contact-side">
+          <div class="contact-card reveal" style="--d:.06s">
+            <h2>{c.altTitle}</h2>
+            <a class="big" href={`mailto:${SITE.email}`}>{SITE.email}</a>
+            <p>{c.emailText}</p>
+            <a class="big big--sm" href={SITE.linkedin} rel="me noopener" target="_blank">linkedin.com/in/dmitry-astakhov-6a153b</a>
+            <p>{c.linkedinText}</p>
+          </div>
+          <div class="contact-card reveal" style="--d:.12s">
+            <h2>{c.includeTitle}</h2>
+            <ul class="ticks">{c.include.map((x) => <li>{x}</li>)}</ul>
+          </div>
         </div>
       </div>
-      <div class="cols cols--2">
-        <div class="block">
-          <h2>{c.includeTitle}</h2>
-          <ul class="ticks">{c.include.map((x) => <li>{x}</li>)}</ul>
-        </div>
-        <div class="block">
-          <h2>{c.nextTitle}</h2>
-          <ol class="steps">{c.next.map((s) => <li><div><h3>{s.t}</h3><p>{s.d}</p></div></li>)}</ol>
-        </div>
+      <div class="block">
+        <h2>{c.nextTitle}</h2>
+        <ol class="steps steps--row">{c.next.map((s) => <li><div><h3>{s.t}</h3><p>{s.d}</p></div></li>)}</ol>
       </div>
       <p class="note">{c.based}</p>
     </div>

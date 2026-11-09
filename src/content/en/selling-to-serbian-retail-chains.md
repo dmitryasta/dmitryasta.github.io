@@ -1,6 +1,6 @@
 ---
 title: "Selling to Serbian Retail Chains: Structure and Rules"
-description: "How Serbian grocery retail is structured, who the largest chains are, and what the 2026 Law on Trade Practices means for suppliers."
+description: "Serbia retail market entry: how grocery retail is structured, who the largest chains are and what the 2026 Law on Trade Practices means for suppliers."
 h1: "Selling to Serbian retail chains: structure, rules and preparation"
 topic: "Retail"
 date: "2026-10-30"

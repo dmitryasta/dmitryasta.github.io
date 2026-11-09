@@ -15,6 +15,7 @@ const ld = graph([websiteNode(lang), breadcrumbNode([{ name: t.nav.home, url: ab
   <section class="section section--tight">
     <div class="container">
       <div class="prose">
+        <p class="updated">{p.updated}</p>
         {p.body.map((b) => (<><h2>{b.h}</h2><p>{b.p}</p></>))}
       </div>
     </div>

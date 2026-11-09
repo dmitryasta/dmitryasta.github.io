@@ -1,184 +1,152 @@
 ---
-// Isometric composition: three stacked commercial layers (import, distribution, retail) with Belgrade as the hub.
-// Everything is generated from simple geometry, so there are no images and no heavy filters.
+// Hero visual: an optimised 3D illustration (three stacked levels: Belgrade, Distribution, Import)
+// + a light SVG layer (links, pins, pulses) + plain HTML labels and indicators.
+// No text is baked into the picture, so every label is real, translatable HTML.
+// Coordinates below are in pixels of the master picture (1315 x 1197); the crop box is the part that is published.
 import type { UI } from '../i18n';
 interface Props { t: UI['home']['art'] }
 const { t } = Astro.props;
 
-const K = Math.SQRT1_2;
-const H = 130; // half side of the square plate in local units
-const TH = 18; // plate thickness
-const f = (n: number) => n.toFixed(1);
-const P = (cx: number, cy: number, lx: number, ly: number): [number, number] => [cx + (lx - ly) * K, cy + ((lx + ly) * K) / 2];
-const poly = (a: [number, number][]) => a.map((p) => `${f(p[0])},${f(p[1])}`).join(' ');
+const BASE = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
+const asset = (n: string) => `${BASE}hero/serbia-3d-${n}`;
 
-function plate(cx: number, cy: number) {
-  const top = P(cx, cy, -H, -H), right = P(cx, cy, H, -H), bottom = P(cx, cy, H, H), left = P(cx, cy, -H, H);
-  const down = (p: [number, number]): [number, number] => [p[0], p[1] + TH];
-  const lines: string[] = [];
-  const n = 5;
-  for (let i = 1; i < n; i++) {
-    const v = -H + (2 * H * i) / n;
-    const a = P(cx, cy, v, -H), b = P(cx, cy, v, H);
-    const c = P(cx, cy, -H, v), d = P(cx, cy, H, v);
-    lines.push(`M${f(a[0])} ${f(a[1])}L${f(b[0])} ${f(b[1])}`, `M${f(c[0])} ${f(c[1])}L${f(d[0])} ${f(d[1])}`);
-  }
-  return {
-    face: poly([top, right, bottom, left]),
-    leftSide: poly([left, bottom, down(bottom), down(left)]),
-    rightSide: poly([bottom, right, down(right), down(bottom)]),
-    grid: lines.join(''),
-  };
-}
+// published crop of the master picture
+const X0 = 150, Y0 = 40, W = 1165, H = 1157;
+const pct = (v: number, o: number, s: number) => `${(((v - o) / s) * 100).toFixed(2)}%`;
+const at = (x: number, y: number) => `left:${pct(x, X0, W)};top:${pct(y, Y0, H)}`;
 
-// cube with its bottom centre at (x, y)
-function cube(x: number, y: number, w: number, d: number) {
-  const h = w / 2;
-  return {
-    top: poly([[x, y - d - h], [x + w, y - d], [x, y - d + h], [x - w, y - d]]),
-    left: poly([[x - w, y - d], [x, y - d + h], [x, y + h], [x - w, y]]),
-    right: poly([[x + w, y - d], [x, y - d + h], [x, y + h], [x + w, y]]),
-  };
-}
+// level corner nodes (right vertices of the three plates) and the vertical axis
+const R = { retail: [996, 371], distribution: [997, 614.5], importer: [1007, 873] } as const;
+const AX = 659.5;
+const HUB: [number, number] = [AX, 598];
 
-const CX = 330;
-const planes = { bottom: 480, middle: 340, top: 200 };
-const pb = plate(CX, planes.bottom), pm = plate(CX, planes.middle), pt = plate(CX, planes.top);
+// real cities on the Serbia plate, projected from geographic coordinates (Natural Earth, public domain)
+const pins: { n: string; x: number; y: number; d: number }[] = [
+  { n: 'Subotica', x: 572.75, y: 557.33, d: 0 },
+  { n: 'Novi Sad', x: 607.99, y: 587.25, d: 0.9 },
+  { n: 'Uzice', x: 651.23, y: 640.69, d: 1.8 },
+  { n: 'Kragujevac', x: 710.82, y: 624.04, d: 2.7 },
+  { n: 'Nis', x: 791.01, y: 640.44, d: 1.3 },
+];
+// conceptual links hub -> city (an illustration of distribution, not a real route network)
+const arcs = [
+  'M659.5 598Q616.1 534.9 572.8 557.3',
+  'M659.5 598Q633.7 562.8 608 587.2',
+  'M659.5 598Q655.4 592.3 651.2 640.7',
+  'M659.5 598Q685.2 579.8 710.8 624',
+  'M659.5 598Q725.3 563.8 791 640.4',
+];
+const rail = `M${R.importer[0]} ${R.importer[1]}C1052 810 1046 700 ${R.distribution[0]} ${R.distribution[1]}C1048 540 1044 440 ${R.retail[0]} ${R.retail[1]}`;
 
-// bottom layer: import route factory -> border -> exit node
-const route = [P(CX, planes.bottom, -100, -70), P(CX, planes.bottom, -45, -25), P(CX, planes.bottom, 0, 0)];
-const routePath = `M${route.map((p) => `${f(p[0])} ${f(p[1])}`).join('L')}`;
-const routeCubes = route.slice(0, 2).map((p) => cube(p[0], p[1], 13, 13));
+const levels = [
+  { k: 'retail', p: R.retail, tag: t.hub, name: t.retail },
+  { k: 'distribution', p: R.distribution, tag: '', name: t.distribution },
+  { k: 'import', p: R.importer, tag: '', name: t.import },
+];
 
-// middle layer: hub and four spokes
-const hubMid = P(CX, planes.middle, 0, 0);
-const spokesMid = ([[-85, -62], [88, -66], [-72, 78], [82, 74]] as [number, number][]).map(([a, b]) => P(CX, planes.middle, a, b));
-
-// top layer: retail blocks around the Belgrade hub
-const hubTop = P(CX, planes.top, 0, 0);
-const blocks = ([[-84, -52, 10], [-30, -84, 16], [60, -76, 12], [86, -4, 20], [74, 70, 11], [8, 82, 15], [-70, 56, 18], [-92, 4, 9]] as [number, number, number][])
-  .map(([a, b, d]) => ({ p: P(CX, planes.top, a, b), d, order: a + b }))
-  .sort((x, y) => x.order - y.order)
-  .map((b) => ({ ...b, c: cube(b.p[0], b.p[1], 12, b.d) }));
-
-const labelX = CX + Math.round(H * Math.SQRT2) + 20;
-const chipW = (s: string) => Math.round(s.length * 7.4 + 34);
-const chipPos = [[10, 112], [10, 268], [10, 404]];
+const icons = [
+  // landed cost: calculator
+  '<rect x="5" y="3" width="14" height="18" rx="2.4"/><path d="M8.5 7.5h7M8.5 12h.01M12 12h.01M15.5 12h.01M8.5 16h.01M12 16h.01M15.5 16h.01"/>',
+  // distributor shortlist: checked list
+  '<path d="M10 6.5h10M10 12h10M10 17.5h10"/><path d="m3.6 6.6 1.3 1.3 2.4-2.6M3.6 12.1l1.3 1.3 2.4-2.6M3.6 17.6l1.3 1.3 2.4-2.6"/>',
+  // weekly report: bars
+  '<path d="M4 20.5V11M10 20.5V4M16 20.5v-6.5M2.5 20.5h19"/>',
+];
 ---
 
-<div class="hero__art" data-hero-art style="--px:0;--py:0">
-  <svg viewBox="0 0 720 620" role="img" aria-label={t.title} xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <linearGradient id="ha-top" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="#2a5aa3" stop-opacity="0.92" />
-        <stop offset="1" stop-color="#112a4b" stop-opacity="0.94" />
-      </linearGradient>
-      <linearGradient id="ha-top2" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="#1f4a86" stop-opacity="0.9" />
-        <stop offset="1" stop-color="#0e2342" stop-opacity="0.94" />
-      </linearGradient>
-      <linearGradient id="ha-side-l" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="#16345d" />
-        <stop offset="1" stop-color="#0a1a30" />
-      </linearGradient>
-      <linearGradient id="ha-side-r" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="#0f2a4c" />
-        <stop offset="1" stop-color="#071426" />
-      </linearGradient>
-      <linearGradient id="ha-edge" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0" stop-color="#4d8dff" />
-        <stop offset="1" stop-color="#42c8e8" />
-      </linearGradient>
-      <radialGradient id="ha-floor" cx="50%" cy="50%" r="50%">
-        <stop offset="0" stop-color="#4d8dff" stop-opacity="0.45" />
-        <stop offset="1" stop-color="#4d8dff" stop-opacity="0" />
-      </radialGradient>
-      <radialGradient id="ha-hub" cx="50%" cy="50%" r="50%">
-        <stop offset="0" stop-color="#42c8e8" stop-opacity="0.75" />
-        <stop offset="1" stop-color="#42c8e8" stop-opacity="0" />
-      </radialGradient>
-    </defs>
+<div class="scene hero__art">
+  <div class="scene__stage">
+    <div class="scene__crop">
+      <div class="scene__frame">
+        <picture>
+          <!-- phone: art-directed tighter crop (885 x 1100 of the master), much lighter than the full picture -->
+          <source media="(max-width: 560px)" type="image/avif" srcset={`${asset('m-440.avif')} 440w, ${asset('m-660.avif')} 660w, ${asset('m-885.avif')} 885w`} sizes="calc(100vw - 36px)" />
+          <source media="(max-width: 560px)" type="image/webp" srcset={`${asset('m-440.webp')} 440w, ${asset('m-660.webp')} 660w, ${asset('m-885.webp')} 885w`} sizes="calc(100vw - 36px)" />
+          <source type="image/avif" srcset={`${asset('480.avif')} 480w, ${asset('768.avif')} 768w, ${asset('1165.avif')} 1165w`} sizes="(min-width: 981px) 540px, 680px" />
+          <source type="image/webp" srcset={`${asset('480.webp')} 480w, ${asset('768.webp')} 768w, ${asset('1165.webp')} 1165w`} sizes="(min-width: 981px) 540px, 680px" />
+          <img class="scene__img" src={asset('768.webp')} width="1165" height="1157" alt={t.alt} decoding="async" />
+        </picture>
 
-    <ellipse cx="330" cy="560" rx="250" ry="48" fill="url(#ha-floor)" />
+        <svg class="scene__fx" viewBox={`${X0} ${Y0} ${W} ${H}`} aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="hx-glow">
+              <stop offset="0" stop-color="#8fe9ff" stop-opacity="0.9" />
+              <stop offset="0.4" stop-color="#42c8e8" stop-opacity="0.3" />
+              <stop offset="1" stop-color="#42c8e8" stop-opacity="0" />
+            </radialGradient>
+          </defs>
 
-    <!-- bottom layer: import -->
-    <g class="art-parallax" style="--dx:14px;--dy:8px">
-      <g class="art-layer art-float-c">
-        <polygon points={pb.leftSide} fill="url(#ha-side-l)" stroke="rgba(127,176,255,.35)" stroke-width="1" />
-        <polygon points={pb.rightSide} fill="url(#ha-side-r)" stroke="rgba(127,176,255,.35)" stroke-width="1" />
-        <polygon points={pb.face} fill="url(#ha-top2)" stroke="url(#ha-edge)" stroke-width="1.4" />
-        <path d={pb.grid} stroke="rgba(170,183,201,.14)" stroke-width="1" fill="none" />
-        <path class="art-route" d={routePath} stroke="#42c8e8" stroke-width="2" fill="none" stroke-linecap="round" />
-        {routeCubes.map((c) => (
-          <g>
-            <polygon points={c.left} fill="#173b6d" />
-            <polygon points={c.right} fill="#0f2c52" />
-            <polygon points={c.top} fill="#4d8dff" />
+          <!-- soft halos behind the two baked rings (Belgrade, Import) -->
+          <ellipse class="fx-halo" cx="660" cy="367" rx="96" ry="32" fill="url(#hx-glow)" />
+          <ellipse class="fx-halo fx-halo--b" cx="660" cy="878" rx="46" ry="17" fill="url(#hx-glow)" />
+
+          <!-- rail on the right edge connecting the corner nodes -->
+          <path class="fx-rail" d={rail} />
+          <path class="fx-rail-pulse" d={rail} pathLength="100" />
+
+          <!-- vertical link between the levels -->
+          <path class="fx-link" d={`M${AX} 552V${HUB[1]}`} />
+          <path class="fx-link fx-link--b" d={`M${AX} 807V872`} />
+          <path class="fx-link-pulse fx-link-pulse--a" d={`M${AX} 872V807`} pathLength="100" />
+          <path class="fx-link-pulse fx-link-pulse--b" d={`M${AX} ${HUB[1]}V552`} pathLength="100" />
+
+          <!-- conceptual links from the Belgrade hub to cities -->
+          <g class="fx-arcs">
+            {arcs.map((d, i) => (
+              <>
+                <path class="fx-arc" d={d} />
+                <path class="fx-arc-pulse" d={d} pathLength="100" style={`--d:${(i * 0.9).toFixed(1)}s`} />
+              </>
+            ))}
           </g>
-        ))}
-        <ellipse cx={route[2][0]} cy={route[2][1]} rx="10" ry="5" fill="#071426" stroke="#42c8e8" stroke-width="1.6" />
-        <text class="art-label" x={labelX} y={planes.bottom + 4}>{t.import}</text>
-        <path d={`M${CX + 184 + 4} ${planes.bottom}H${labelX - 6}`} stroke="rgba(170,183,201,.4)" stroke-width="1" />
-      </g>
-    </g>
 
-    <!-- middle layer: distribution -->
-    <g class="art-parallax" style="--dx:-6px;--dy:4px">
-      <g class="art-layer art-float-b">
-        <polygon points={pm.leftSide} fill="url(#ha-side-l)" stroke="rgba(127,176,255,.35)" stroke-width="1" />
-        <polygon points={pm.rightSide} fill="url(#ha-side-r)" stroke="rgba(127,176,255,.35)" stroke-width="1" />
-        <polygon points={pm.face} fill="url(#ha-top2)" stroke="url(#ha-edge)" stroke-width="1.4" />
-        <path d={pm.grid} stroke="rgba(170,183,201,.14)" stroke-width="1" fill="none" />
-        {spokesMid.map((s) => (
-          <path d={`M${f(hubMid[0])} ${f(hubMid[1])}L${f(s[0])} ${f(s[1])}`} stroke="#4d8dff" stroke-width="1.6" stroke-opacity=".8" fill="none" />
-        ))}
-        {spokesMid.map((s, i) => (
-          <ellipse class="art-node-pulse" style={`animation-delay:${i * 0.7}s`} cx={s[0]} cy={s[1]} rx="8" ry="4" fill="#42c8e8" />
-        ))}
-        <ellipse cx={hubMid[0]} cy={hubMid[1]} rx="13" ry="6.5" fill="#071426" stroke="#7fb0ff" stroke-width="2" />
-        <text class="art-label" x={labelX} y={planes.middle + 4}>{t.distribution}</text>
-        <path d={`M${CX + 184 + 4} ${planes.middle}H${labelX - 6}`} stroke="rgba(170,183,201,.4)" stroke-width="1" />
-      </g>
-    </g>
+          <!-- hub -->
+          <ellipse class="fx-hub-halo" cx={HUB[0]} cy={HUB[1]} rx="30" ry="14" fill="url(#hx-glow)" />
+          <ellipse class="fx-hub-ring" cx={HUB[0]} cy={HUB[1]} rx="15" ry="7" />
+          <circle class="fx-hub-core" cx={HUB[0]} cy={HUB[1]} r="4.2" />
 
-    <!-- top layer: retail and B2B -->
-    <g class="art-parallax" style="--dx:-16px;--dy:-4px">
-      <g class="art-layer art-float-a">
-        <polygon points={pt.leftSide} fill="url(#ha-side-l)" stroke="rgba(127,176,255,.35)" stroke-width="1" />
-        <polygon points={pt.rightSide} fill="url(#ha-side-r)" stroke="rgba(127,176,255,.35)" stroke-width="1" />
-        <polygon points={pt.face} fill="url(#ha-top)" stroke="url(#ha-edge)" stroke-width="1.6" />
-        <path d={pt.grid} stroke="rgba(244,247,251,.16)" stroke-width="1" fill="none" />
-        {blocks.map((b) => (
-          <g>
-            <polygon points={b.c.left} fill="#173b6d" />
-            <polygon points={b.c.right} fill="#0f2c52" />
-            <polygon points={b.c.top} fill="#7fb0ff" />
+          <!-- city pins -->
+          {pins.map((p) => (
+            <g class="fx-pin" style={`--d:${p.d}s`}>
+              <ellipse class="fx-pin-wave" cx={p.x} cy={p.y} rx="3.2" ry="1.7" />
+              <circle cx={p.x} cy={p.y} r="2.9" />
+            </g>
+          ))}
+
+          <!-- corner and joint nodes -->
+          <g class="fx-nodes">
+            <circle cx={R.retail[0]} cy={R.retail[1]} r="3.4" />
+            <circle cx={R.distribution[0]} cy={R.distribution[1]} r="3.4" />
+            <circle cx={R.importer[0]} cy={R.importer[1]} r="3.4" />
+            <circle cx={AX} cy="552" r="2.6" />
+            <circle cx={AX} cy="807" r="2.6" />
           </g>
-        ))}
-        <ellipse cx={hubTop[0]} cy={hubTop[1]} rx="40" ry="20" fill="url(#ha-hub)" />
-        <ellipse class="art-node-pulse" cx={hubTop[0]} cy={hubTop[1]} rx="22" ry="11" fill="none" stroke="#42c8e8" stroke-width="1.6" />
-        <ellipse cx={hubTop[0]} cy={hubTop[1]} rx="12" ry="6" fill="#071426" stroke="#42c8e8" stroke-width="2" />
-        <rect x={hubTop[0] - 3} y={hubTop[1] - 3} width="6" height="6" rx="1" fill="#c9a227" transform={`rotate(45 ${hubTop[0]} ${hubTop[1]})`} />
-        <text class="art-label art-label--hot" x={labelX} y={planes.top + 4}>{t.retail}</text>
-        <path d={`M${CX + 184 + 4} ${planes.top}H${labelX - 6}`} stroke="rgba(127,227,247,.6)" stroke-width="1" />
-        <text class="art-label art-label--hot" x={hubTop[0]} y={planes.top - 106} text-anchor="middle" style="font-size:11px">{t.hub}</text>
-        <path d={`M${hubTop[0]} ${planes.top - 98}V${planes.top - 60}`} stroke="rgba(127,227,247,.55)" stroke-width="1" />
-      </g>
-    </g>
+        </svg>
+        <!-- level numbers on the plates, shown only in the compact (phone) layout -->
+        <ul class="scene__pins" aria-hidden="true">
+          {levels.map((l, i) => (<li style={at(l.p[0] - 20, l.p[1] + 4)}>{i + 1}</li>))}
+        </ul>
+      </div>
+    </div>
 
-    <!-- vertical links between the layers -->
-    <path class="art-route" d={`M${f(route[2][0])} ${f(route[2][1] - 6)}V${f(hubMid[1] + 8)}`} stroke="#42c8e8" stroke-width="1.8" stroke-opacity=".85" fill="none" />
-    <path class="art-route" d={`M${f(hubMid[0])} ${f(hubMid[1] - 8)}V${f(hubTop[1] + 12)}`} stroke="#42c8e8" stroke-width="1.8" stroke-opacity=".85" fill="none" />
+    <!-- level labels: real text, positioned beside the right corner of each plate -->
+    <ul class="scene__levels">
+      {levels.map((l) => (
+        <li class={`lvl lvl--${l.k}`} style={at(l.p[0], l.p[1])}>
+          {l.tag && <span class="lvl__tag">{l.tag}</span>}
+          <b class="lvl__name">{l.name}</b>
+        </li>
+      ))}
+    </ul>
+  </div>
 
-    <!-- floating glass chips -->
-    {t.chips.map((label, i) => (
-      <g class={`art-layer art-chip ${['art-float-b', 'art-float-c', 'art-float-a'][i]}`}>
-        <g class="art-parallax" style={`--dx:${[-22, -12, -26][i]}px;--dy:${[-8, 6, 10][i]}px`}>
-          <rect x={chipPos[i][0]} y={chipPos[i][1]} width={chipW(label)} height="34" rx="17" fill="rgba(16,24,39,.82)" stroke="rgba(170,183,201,.35)" />
-          <circle cx={chipPos[i][0] + 17} cy={chipPos[i][1] + 17} r="4" fill="#42c8e8" />
-          <text x={chipPos[i][0] + 29} y={chipPos[i][1] + 21.5} font-family="Inter Variable, system-ui, sans-serif" font-size="13" font-weight="600" fill="#f4f7fb">{label}</text>
-        </g>
-      </g>
+  <ul class="scene__chips">
+    {t.chips.map((c, i) => (
+      <li class="sc">
+        <span class="sc__ic"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={icons[i]} /></span>
+        <span class="sc__t">{c}</span>
+        <i class="sc__led" aria-hidden="true"></i>
+      </li>
     ))}
-  </svg>
+  </ul>
 </div>

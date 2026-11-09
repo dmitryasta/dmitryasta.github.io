@@ -1,7 +1,7 @@
 ---
 name: "Local commercial representation"
-title: "Commercial Representation in Serbia | Dmitry Astakhov"
-description: "A commercial representative in Serbia for foreign manufacturers: meetings with buyers, order planning, promotions and weekly reporting from Belgrade."
+title: "Local Commercial Representative in Serbia | Dmitry Astakhov"
+description: "A local commercial representative in Serbia for foreign manufacturers: meetings with buyers, order planning, promotions and weekly reporting from Belgrade."
 h1: "Local commercial representation in Serbia"
 lead: "Your eyes, ears and negotiating seat in Belgrade, between the manufacturer abroad and the Serbian trade."
 short: "A representative on the ground: meetings, order planning, promotions and weekly reporting."

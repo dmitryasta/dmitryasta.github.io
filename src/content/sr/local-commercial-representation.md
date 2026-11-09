@@ -1,7 +1,7 @@
 ---
 name: "Lokalno komercijalno zastupanje"
 title: "Komercijalno zastupanje u Srbiji | Dmitry Astakhov"
-description: "Komercijalni zastupnik u Srbiji za strane proizvođače: sastanci sa kupcima, planiranje narudžbina, promocije i nedeljno izveštavanje iz Beograda."
+description: "Komercijalno zastupanje stranih kompanija u Srbiji: sastanci sa kupcima, planiranje narudžbina, promocije i nedeljno izveštavanje iz Beograda."
 h1: "Lokalno komercijalno zastupanje u Srbiji"
 lead: "Vaše oči, uši i pregovaračko mesto u Beogradu, između proizvođača u inostranstvu i srpske trgovine."
 short: "Zastupnik na terenu: sastanci, planiranje narudžbina, promocije i nedeljno izveštavanje."
