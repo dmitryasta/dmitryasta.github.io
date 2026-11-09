@@ -1,7 +1,7 @@
 ---
 name: "Distributor and buyer search"
 title: "Find Distributors in Serbia | Dmitry Astakhov"
-description: "How to find and choose a distributor or importer in Serbia: shortlist, outreach, negotiation and terms for food, FMCG and consumer goods exporters."
+description: "Find distributors in Serbia for FMCG and food brands: shortlist, outreach, negotiation and terms, plus the route into retail chains."
 h1: "Find a distributor, importer or buyer in Serbia"
 lead: "A shortlist built from the real market, not from a directory, and a negotiation that protects your price and your brand."
 short: "Shortlist, outreach and negotiation with distributors, importers, retail chains and B2B buyers in Serbia."
